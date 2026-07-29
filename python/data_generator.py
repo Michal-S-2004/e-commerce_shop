@@ -4,6 +4,8 @@ from unidecode import unidecode
 import psycopg
 import os
 from datetime import datetime
+import random
+from decimal import Decimal
 
 product_dict = {
     "Laptops": [
@@ -246,11 +248,142 @@ def create_product():
                 (params[0], params[1], category_id))
     #print(product_params)
 
+def create_customer_orders(number_of_orders=500):
+
+    cursor.execute("""
+        SELECT customer_id
+        FROM customers
+    """)
+    customer_ids = [row[0] for row in cursor.fetchall()]
+
+    cursor.execute("""
+        SELECT employee_id
+        FROM employees
+    """)
+    employee_ids = [row[0] for row in cursor.fetchall()]
+
+    cursor.execute("""
+        SELECT
+            p.product_id,
+            p.product_name,
+            p.product_price,
+            c.category_name
+        FROM product p
+        JOIN categories c
+            ON p.category_id = c.category_id
+    """)
+    product_rows = cursor.fetchall()
+
+    products_by_category = {}
+
+    for product_id, product_name, product_price, category_name in product_rows:
+
+        if category_name not in products_by_category:
+            products_by_category[category_name] = []
+
+        products_by_category[category_name].append(
+            (product_id, product_name, product_price)
+        )
+
+    category_names = list(products_by_category.keys())
+
+    for i in range(number_of_orders):
+
+        customer_id = random.choice(customer_ids)
+        employee_id = random.choice(employee_ids)
+
+        shipping_address = fake.address().replace("\n", ", ")
+        order_date = fake.date_between(
+            start_date=datetime(2025, 1, 1),
+            end_date="today"
+        )
+
+        number_of_categories = random.randint(1, 3)
+
+        selected_categories = random.sample(
+            category_names,
+            k=number_of_categories
+        )
+
+        selected_items = {}
+
+        for category_name in selected_categories:
+
+            number_of_products = random.randint(1, 3)
+
+            selected_products = random.choices(
+                products_by_category[category_name],
+                k=number_of_products
+            )
+
+            for product_id, product_name, product_price in selected_products:
+
+                if product_id not in selected_items:
+                    selected_items[product_id] = {
+                        "product_name": product_name,
+                        "unit_price": Decimal(str(product_price)),
+                        "quantity": 1
+                    }
+                else:
+                    selected_items[product_id]["quantity"] += 1
+
+        order_price = Decimal("0.00")
+
+        for item in selected_items.values():
+            order_price += item["unit_price"] * item["quantity"]
+
+        cursor.execute(
+            """
+            INSERT INTO customer_orders
+            (
+                customer_id,
+                employee_id,
+                shipping_address,
+                order_price,
+                order_date
+            )
+            VALUES (%s, %s, %s, %s, %s)
+            RETURNING order_id
+            """,
+            (
+                customer_id,
+                employee_id,
+                shipping_address,
+                order_price,
+                order_date
+            )
+        )
+
+        order_id = cursor.fetchone()[0]
+
+        for product_id, item in selected_items.items():
+
+            cursor.execute(
+                """
+                INSERT INTO order_items
+                (
+                    order_id,
+                    product_id,
+                    quantity,
+                    unit_price
+                )
+                VALUES (%s, %s, %s, %s)
+                """,
+                (
+                    order_id,
+                    product_id,
+                    item["quantity"],
+                    item["unit_price"]
+                )
+            )
+
+
+
 
 #create_product()
 if __name__ == "__main__":
     #create_customers()
-
+    #create_customer_orders()
     connection.commit()
 
     cursor.close()
