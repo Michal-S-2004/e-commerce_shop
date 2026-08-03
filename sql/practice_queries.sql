@@ -79,13 +79,10 @@ select c.customer_id, c.first_name, c.last_name, count(c_o.order_id) as number_o
 select c.first_name, c.last_name from customers as c where c.first_name in ('Kasia', 'Katarzyna', 'Michal')
 
 
-
 select * from categories as c left join product as p on c.category_id = p.category_id
 
 
-
 select c.last_name from customers as c left join customer_orders as c_o on c.customer_id = c_o.customer_id group by c.customer_id having count(c_o.order_id) = 0
-
 
 
 select c.first_name, c.last_name, c_o.order_id, p.product_name from customers as c left join customer_orders as c_o on c.customer_id = c_o.customer_id left join order_items as o_i on c_o.order_id = o_i.order_id left join product as p on o_i.product_id =p.product_id
@@ -96,5 +93,14 @@ select e.last_name, e.first_name, sum(o_i.quantity*o_i.unit_price)  from employe
 
      
 
- 
+with number_of_orders as (select count(c_o.order_id) as amount, c_o.customer_id as customer_id from customer_orders as c_o group by c_o.customer_id )
+select c.customer_id, nof.amount from customers as c left join number_of_orders as nof on c.customer_id = nof.customer_id
+
+with number_of_orders as (select count(c_o.order_id) as amount, c_o.customer_id as customer_id from customer_orders as c_o group by c_o.customer_id )
+select c.customer_id, nof.amount from customers as c join number_of_orders as nof on c.customer_id = nof.customer_id where nof.amount>3
+
+select c.last_name, c.first_name, sum(order_price) from customers as c join customer_orders as c_o on c.customer_id = c_o.customer_id group by c_o.customer_id, c.last_name, c.first_name  having sum(order_price)>5000
+
+with number_of_orders as (select count(c_o.order_id) as amount, c_o.employee_id as employee from customer_orders as c_o group by c_o.employee_id)
+select e.first_name, e.last_name, nof.amount from employees as e left join number_of_orders as nof  on nof.employee = e.employee_id	  group by e.first_name, e.last_name, nof.amount order by e.last_name
 
