@@ -70,5 +70,31 @@ select c.first_name, c.last_name, c_o.order_price, case when c_o.order_price >=6
 
 select c_o.order_id, e.first_name, e.last_name, case when c_o.order_price >=6000 then 'VIP' else 'usual' end as order_category from employees as e join customer_orders as c_o on e.employee_id = c_o.employee_id
 
-select count(*) as number_of_customers, case when created_at>= '01-01-2026' then 'new' else 'old' end as customer_category from customers group by case when created_at>= '01-01-2026' then 'new' else 'old' end 
+select count(*) as number_of_customers, case when created_at>= '01-01-2026' then 'new' else 'old' end as customer_category from customers group by case when created_at>= '01-01-2026' then 'new' else 'old' end
+
+select c.customer_id, c.first_name, c.last_name, count(c_o.order_id) as number_of_orders from customers as c left join customer_orders as c_o on c.customer_id = c_o.customer_id group by c.customer_id order by number_of_orders 
+
+
+
+select c.first_name, c.last_name from customers as c where c.first_name in ('Kasia', 'Katarzyna', 'Michal')
+
+
+
+select * from categories as c left join product as p on c.category_id = p.category_id
+
+
+
+select c.last_name from customers as c left join customer_orders as c_o on c.customer_id = c_o.customer_id group by c.customer_id having count(c_o.order_id) = 0
+
+
+
+select c.first_name, c.last_name, c_o.order_id, p.product_name from customers as c left join customer_orders as c_o on c.customer_id = c_o.customer_id left join order_items as o_i on c_o.order_id = o_i.order_id left join product as p on o_i.product_id =p.product_id
+
+
+
+select e.last_name, e.first_name, sum(o_i.quantity*o_i.unit_price)  from employees as e left join customer_orders as c_o on e.employee_id = c_o.employee_id left join  order_items as o_i on c_o.order_id = o_i.order_id group by e.last_name, e.first_name
+
+     
+
+ 
 
