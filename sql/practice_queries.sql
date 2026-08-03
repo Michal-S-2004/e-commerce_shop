@@ -59,3 +59,16 @@ select count(*) as number_of_products, c.category_id from categories as c join p
 select sum(o_i.quantity*o_i.unit_price), p.product_name from order_items as o_i join product as p on o_i.product_id = p.product_id group by product_name
 
 select p.product_name, sum(o_i.quantity*o_i.unit_price) as income from product as p join order_items as o_i on p.product_id = o_i.product_id group by p.product_name order by income desc limit 5
+
+SELECT product_name, product_price, CASE WHEN product_price>5000 THEN 'premium' WHEN product_price<=5000 THEN 'normal' end as price_category from product
+
+select first_name, last_name, created_at, case when created_at>= '01-01-2026' then 'new' else 'old' end as customer_category from customers
+
+select order_id, case when order_price<1000 then 'small' when order_price between 1000 and  3000 then 'medium' else 'large' end as order_category from customer_orders
+
+select c.first_name, c.last_name, c_o.order_price, case when c_o.order_price >=6000 then 'VIP' else 'usual' end as order_category from customers as c join customer_orders as c_o on c.customer_id = c_o.customer_id
+
+select c_o.order_id, e.first_name, e.last_name, case when c_o.order_price >=6000 then 'VIP' else 'usual' end as order_category from employees as e join customer_orders as c_o on e.employee_id = c_o.employee_id
+
+select count(*) as number_of_customers, case when created_at>= '01-01-2026' then 'new' else 'old' end as customer_category from customers group by case when created_at>= '01-01-2026' then 'new' else 'old' end 
+
