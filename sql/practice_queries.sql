@@ -104,3 +104,46 @@ select c.last_name, c.first_name, sum(order_price) from customers as c join cust
 with number_of_orders as (select count(c_o.order_id) as amount, c_o.employee_id as employee from customer_orders as c_o group by c_o.employee_id)
 select e.first_name, e.last_name, nof.amount from employees as e left join number_of_orders as nof  on nof.employee = e.employee_id	  group by e.first_name, e.last_name, nof.amount order by e.last_name
 
+
+select p.product_id, case when p.product_price<1000 then 'cheap' when p.product_price between 1000.01 and 3000 then 'regular' else 'expensive' end as category from product as p 
+
+select c.customer_id, case when c.created_at between '2025-01-01' and '2025-12-31' then '2025' when c.created_at between '2024-01-01' and '2024-12-31' then '2024' else '2026'  end as year_of_acc_creation from customers as c
+select c.customer_id, to_char(c.created_at, 'YYYY') as year_of_account_creation from customers as c
+
+with average as (select avg(c_o.order_price) as overall_avg from customer_orders as c_o)
+select c.customer_id, c.last_name, c.first_name, sum(c_o.order_price) as revenue from customers as c 
+left join customer_orders as c_o on c.customer_id = c_o.customer_id cross join average as a group by c.customer_id, c.first_name, c.last_name, a.overall_avg having sum(c_o.order_price)>a.overall_avg order by revenue desc
+
+select cat.category_id, count(p.product_id) as amount_of_products from categories as cat left join product as p on cat.category_id = p.category_id group by cat.category_id having count(p.product_id)>7
+
+with number_of_orders as (select count(c_o.order_id) as amount, c_o.customer_id as customer_id from customer_orders as c_o group by c_o.customer_id ),
+customer_category as (select c.customer_id as customer_id, case when nof.amount >4 then 'VIP' else 'regular' end as category from customers as c left join number_of_orders as nof on nof.customer_id = c.customer_id)
+select c.first_name, c.last_name, c_c.category from customers as c left join customer_category as c_c on c.customer_id = c_c.customer_id group by c.first_name, c.last_name, c_c.category
+
+
+with orders_daily as (select count(*) as amount, date(c_o.order_date)  from customer_orders as c_o group by date(c_o.order_date)),
+dates_with_good_sales as (select * from orders_daily where orders_daily.amount>1)
+select * from dates_with_good_sales order by dates_with_good_sales.amount DESC
+
+
+with revenue_per_customer as (select c_o.customer_id as customer_id, sum(c_o.order_price) as revenue from customer_orders as c_o group by c_o.customer_id),
+average_revenue as (select avg(r_p_c.revenue) as avg_revenue from customer_orders as c_o left join revenue_per_customer as r_p_c on r_p_c.customer_id = c_o.customer_id ),
+customer_status as (select c.first_name, c.last_name,  r_p_c.revenue, case when r_p_c.revenue>a_r.avg_revenue then 'VIP' else 'regular'end as status 
+from customers as c join customer_orders as c_o on c.customer_id = c_o.customer_id left join revenue_per_customer as r_p_c on r_p_c.customer_id = c_o.customer_id cross join average_revenue as a_r group by c.first_name, c.last_name, r_p_c.revenue  )
+select * from customer_status
+
+
+select * from customers where extract(year from created_at) = 2026
+
+select p.product_name, extract(month from c_o.order_date) from product as p left join order_items as o_i on p.product_id = o_i.product_id left join customer_orders as c_o on c_o.order_id = o_i.order_id group by extract(month from c_o.order_date)  , p.product_name
+
+select * from customer_orders where order_date < current_date - interval '180 days'\
+
+select p.product_name, extract(year from c_o.order_date) as calendar_year, count (p.product_id) as amount from product as p 
+left join order_items as o_i on p.product_id = o_i.product_id left join customer_orders as c_o on c_o.order_id = o_i.order_id
+group by p.product_name, extract(year from c_o.order_date) order by amount desc
+
+
+select c.customer_id, c.first_name, c.last_name from customers as c join customer_orders as c_o on c.customer_id = c_o.customer_id where date(c_o.order_date) - date(c.created_at) <= 30
+
+select c.customer_id, min(current_date - date(c_o.order_date)) as days_from_last_order from customers as c join customer_orders as c_o on c.customer_id = c_o.customer_id group by c.customer_id order by min(current_date - date(c_o.order_date))
