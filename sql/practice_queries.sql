@@ -148,3 +148,5 @@ select c.customer_id, c.first_name, c.last_name from customers as c join custome
 
 select c.customer_id, min(current_date - date(c_o.order_date)) as days_from_last_order from customers as c join customer_orders as c_o on c.customer_id = c_o.customer_id group by c.customer_id order by min(current_date - date(c_o.order_date))
 select c.customer_id, c.first_name, c.last_name, max(c_o.order_date) as last_order_date from customers as c left join customer_orders as c_o on c.customer_id = c_o.customer_id group by c.customer_id, c.first_name, c.last_name having max(c_o.order_date) < current_date - interval '90 days' or max(c_o.order_date) is null
+
+select extract(year from c_o.order_date)::int as calendar_year, extract(quarter from c_o.order_date)::int as calendar_quarter, sum(c_o.order_price) as revenue from customer_orders as c_o group by extract(year from c_o.order_date)::int, extract(quarter from c_o.order_date)::int order by calendar_year, calendar_quarter
