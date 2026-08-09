@@ -137,7 +137,7 @@ select * from customers where extract(year from created_at) = 2026
 
 select p.product_name, extract(month from c_o.order_date) from product as p left join order_items as o_i on p.product_id = o_i.product_id left join customer_orders as c_o on c_o.order_id = o_i.order_id group by extract(month from c_o.order_date)  , p.product_name
 
-select * from customer_orders where order_date < current_date - interval '180 days'\
+select * from customer_orders where order_date < current_date - interval '180 days'
 
 select p.product_name, extract(year from c_o.order_date) as calendar_year, count (p.product_id) as amount from product as p 
 left join order_items as o_i on p.product_id = o_i.product_id left join customer_orders as c_o on c_o.order_id = o_i.order_id
@@ -147,6 +147,41 @@ group by p.product_name, extract(year from c_o.order_date) order by amount desc
 select c.customer_id, c.first_name, c.last_name from customers as c join customer_orders as c_o on c.customer_id = c_o.customer_id where date(c_o.order_date) - date(c.created_at) <= 30
 
 select c.customer_id, min(current_date - date(c_o.order_date)) as days_from_last_order from customers as c join customer_orders as c_o on c.customer_id = c_o.customer_id group by c.customer_id order by min(current_date - date(c_o.order_date))
+
 select c.customer_id, c.first_name, c.last_name, max(c_o.order_date) as last_order_date from customers as c left join customer_orders as c_o on c.customer_id = c_o.customer_id group by c.customer_id, c.first_name, c.last_name having max(c_o.order_date) < current_date - interval '90 days' or max(c_o.order_date) is null
 
 select extract(year from c_o.order_date)::int as calendar_year, extract(quarter from c_o.order_date)::int as calendar_quarter, sum(c_o.order_price) as revenue from customer_orders as c_o group by extract(year from c_o.order_date)::int, extract(quarter from c_o.order_date)::int order by calendar_year, calendar_quarter
+
+
+select e.first_name, e.last_name, count(*) as amount_of_orders from employees as e join customer_orders as c_o on e.employee_id = c_o.employee_id group by e.first_name, e.last_name order by amount_of_orders desc limit 1
+
+select e.first_name, e.last_name, sum(order_price) as total_sales from employees as e join customer_orders as c_o on e.employee_id = c_o.employee_id group by e.first_name, e.last_name order by total_sales desc limit 1
+
+with products_sold_overall as (select p.product_id, p.category_id,  coalesce(sum(o_i.quantity),0) as amount_of_products from product as p join order_items as o_i on p.product_id = o_i.product_id group by p.product_id, p.category_id),
+products_per_category as (select cat.category_name, cat.category_id, sum(p_s_o.amount_of_products) as products_by_category from categories as cat join products_sold_overall as p_s_o on p_s_o.category_id = cat.category_id 
+group by cat.category_name, cat.category_id ),
+products_per_category_average as (select avg(p_p_r.products_by_category) as average from products_per_category as p_p_r)
+select cat.category_name, p_p_r.products_by_category from categories as cat join products_per_category as p_p_r on cat.category_id = p_p_r.category_id
+cross join products_per_category_average as p_p_c_a where p_p_r.products_by_category > p_p_c_a.average 
+
+
+with customers_spendings_on_categories as (
+    select cat.category_id, cat.category_name, c.customer_id, c.last_name, c.first_name,
+           sum(o_i.quantity * o_i.unit_price) as revenue
+    from categories as cat
+    join product as p on p.category_id = cat.category_id
+    join order_items as o_i on o_i.product_id = p.product_id
+    join customer_orders as c_o on o_i.order_id = c_o.order_id
+    join customers as c on c_o.customer_id = c.customer_id
+    group by cat.category_id, cat.category_name, c.customer_id, c.last_name, c.first_name
+),
+max_revenue_per_category as (
+    select category_id, max(revenue) as max_revenue
+    from customers_spendings_on_categories
+    group by category_id
+)
+select c_s.category_name, c_s.first_name, c_s.last_name, c_s.revenue
+from customers_spendings_on_categories as c_s
+join max_revenue_per_category as m_r
+    on c_s.category_id = m_r.category_id
+    and c_s.revenue = m_r.max_revenue
