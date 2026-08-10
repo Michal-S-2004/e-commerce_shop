@@ -12,3 +12,10 @@ select c_o.order_id, c_o.order_price,c_o.order_date, row_number() over(order by 
 
 select c_o.employee_id, c_o.order_id, c_o.order_date, row_number() over(partition by c_o.employee_id order by c_o.order_date ) from customer_orders as c_o
 
+
+select c_o.order_id, c_o.order_price, rank() over(order by c_o.order_price desc) from customer_orders as c_o
+
+select c_o.employee_id, c_o.order_id, c_o.order_price, rank() over(partition by c_o.employee_id order by c_o.order_price desc) from customer_orders as c_o
+
+select p.product_id, p.product_name, p.product_price, cat.category_id, rank() over(partition by cat.category_id order by p.product_price desc) from product as p 
+join categories as cat on cat.category_id = p.category_id
