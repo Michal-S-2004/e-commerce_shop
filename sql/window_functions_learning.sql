@@ -19,3 +19,8 @@ select c_o.employee_id, c_o.order_id, c_o.order_price, rank() over(partition by 
 
 select p.product_id, p.product_name, p.product_price, cat.category_id, rank() over(partition by cat.category_id order by p.product_price desc) from product as p 
 join categories as cat on cat.category_id = p.category_id
+
+select c_o.order_id, c_o.order_date, c_o.order_price, lag(c_o.order_price)  over(order by c_o.order_date) as previous_price from customer_orders as c_o
+
+select c_o.order_id, c_o.order_date, c_o.order_price, lag(c_o.order_price)  over(order by c_o.order_date) as previous_price, round((c_o.order_price - lag(c_o.order_price) over(order by c_o.order_date)),2) as difference 
+from customer_orders as c_o
