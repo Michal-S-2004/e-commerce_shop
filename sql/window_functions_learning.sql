@@ -49,3 +49,7 @@ select c_o.order_id, c_o.order_price,c_o.order_price - lead(c_o.order_price,2) o
 
 select c_o.order_id, sum(c_o.order_price) over(order by c_o.order_date, c_o.order_id), rank() over(order by c_o.order_date, c_o.order_id) from customer_orders as c_o
 
+select c_o.order_id, c_o.order_price, first_value(c_o.order_price) over(order by c_o.order_price ) from customer_orders as c_o
+
+select c_o.employee_id, e.first_name, e.last_name, c_o.order_price, first_value(c_o.order_price) over(partition by c_o.employee_id order by c_o.order_price desc ) as top_order from customer_orders as c_o
+join employees as e on e.employee_id = c_o.employee_id
