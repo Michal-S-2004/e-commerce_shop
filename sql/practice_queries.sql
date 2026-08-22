@@ -185,3 +185,14 @@ from customers_spendings_on_categories as c_s
 join max_revenue_per_category as m_r
     on c_s.category_id = m_r.category_id
     and c_s.revenue = m_r.max_revenue
+    
+create view category_revenue as
+select cat.category_id, cat.category_name, SUM(o_i.quantity) AS amount_of_products_sold, SUM(o_i.quantity * p.product_price) as revenue 
+from customer_orders as c_o 
+join order_items as o_i on o_i.order_id = c_o.order_id join product as p on p.product_id = o_i.product_id join categories as cat on cat.category_id = p.category_id
+group by cat.category_id, cat.category_name;
+
+
+select * from category_revenue;
+
+DROP VIEW category_revenue;
