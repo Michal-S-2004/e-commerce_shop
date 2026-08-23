@@ -60,8 +60,12 @@ select c_o.employee_id, c_o.order_id, c_o.order_price, round(avg(c_o.order_price
 select c_o.order_date, c_o.order_id, c_o.order_price, coalesce(c_o.order_price - lag(c_o.order_price) over(order by c_o.order_date),0) from customer_orders as c_o
 
 
-select c_o.employee_id, c_o.order_id, c_o.order_price, dense_rank() over(partition by c_o.employee_id order by c_o.order_price desc ) from customer_orders as c_o
+explain analyze select c_o.employee_id, c_o.order_id, c_o.order_price, dense_rank() over(partition by c_o.employee_id order by c_o.order_price desc ) from customer_orders as c_o
 
 select c_o.order_id, c_o.order_price, c_o.order_date, round(avg(c_o.order_price) over(order by c_o.order_date rows between 3 preceding and current row),2) as moving_average from customer_orders as c_o
 
 select c_o.employee_id, c_o.order_id, c_o.order_price, first_value(c_o.order_price) over(partition by c_o.employee_id order by c_o.order_price desc ) as most_expensive_order from customer_orders as c_o
+
+explain analyze select * from customer_orders where customer_id = 100
+create index idx_c_o_customer_id on customer_orders(customer_id)
+drop index idx_c_o_customer_id
