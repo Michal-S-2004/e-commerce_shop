@@ -69,3 +69,29 @@ select c_o.employee_id, c_o.order_id, c_o.order_price, first_value(c_o.order_pri
 explain analyze select * from customer_orders where customer_id = 100
 create index idx_c_o_customer_id on customer_orders(customer_id)
 drop index idx_c_o_customer_id
+
+explain analyze
+select *
+from customer_orders
+where order_price between 3000 and 5000
+
+create index idx_c_o_order_price on customer_orders(order_price)
+
+select e.employee_id, e.first_name, e.last_name, count(c_o.order_id), sum(c_o.order_price), avg(c_o.order_price) 
+from employees as e 
+left join customer_orders as c_o on e.employee_id = c_o.employee_id
+group by e.employee_id, e.first_name, e.last_name
+order by sum(c_o.order_price) desc
+
+with ranking as(
+select cat.category_name, p.product_name, sum(o_i.quantity) as products_sold, dense_rank() over( partition by cat.category_name order by sum(o_i.quantity) desc ) as ranking
+from categories as cat
+join product as p on cat.category_id = p.category_id 
+join order_items as o_i on o_i.product_id = p.product_id
+group by cat.category_name, p.product_name)
+
+select * from ranking where ranking = 1
+
+
+select c_o.order_id, c_o.employee_id, c_o.order_price, 100* c_o.order_price/sum(c_o.order_price) over(partition by c_o.employee_id) as percentage from customer_orders as c_o
+
