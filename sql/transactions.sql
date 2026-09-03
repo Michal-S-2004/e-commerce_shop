@@ -36,4 +36,19 @@ where order_id in (3, 4, 5);
 
 
 
+SELECT current_database()
+
+begin;
+update employees 
+set salary = 10000
+where employee_id = 1;
+savepoint sp1;
+update employees 
+set salary = 10000
+where employee_id = 2;
+savepoint sp2;
+
+rollback to savepoint sp1 ;
+
+select employee_id, salary from employees where employee_id in (1,2,3)
 
