@@ -200,3 +200,14 @@ DROP VIEW category_revenue;
 select order_id, employee_id, order_price from customer_orders where order_price <200 union select order_id, employee_id, order_price from customer_orders where order_price>800
 
 select order_id, employee_id, order_price from customer_orders where order_price >400 intersect select order_id, employee_id, order_price from customer_orders where employee_id = 5
+
+with customer_spendings as (select c_o.customer_id, sum(c_o.order_price) as spendings from customer_orders as c_o group by c_o.customer_id),
+avg_customer_spendings as (select avg(spendings) as avg_sp from customer_spendings)
+
+select c.customer_id from customers as c 
+join customer_spendings as cs on cs.customer_id = c.customer_id 
+cross join avg_customer_spendings as acs  where cs.spendings>acs.avg_sp
+
+
+
+
