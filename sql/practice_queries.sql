@@ -209,5 +209,9 @@ join customer_spendings as cs on cs.customer_id = c.customer_id
 cross join avg_customer_spendings as acs  where cs.spendings>acs.avg_sp
 
 
+with avg_product_price as (select avg(product_price) as avg_price from product)
+select p.product_id, p.product_price from product as p cross join avg_product_price as app  where p.product_price> app.avg_price
+
+
 
 
