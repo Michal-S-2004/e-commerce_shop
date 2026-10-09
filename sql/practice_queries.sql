@@ -212,6 +212,32 @@ cross join avg_customer_spendings as acs  where cs.spendings>acs.avg_sp
 with avg_product_price as (select avg(product_price) as avg_price from product)
 select p.product_id, p.product_price from product as p cross join avg_product_price as app  where p.product_price> app.avg_price
 
+WITH company_revenue AS (
+    SELECT
+        SUM(c_o.order_price) AS revenue,
+        EXTRACT(MONTH FROM c_o.order_date) AS month,
+        EXTRACT(YEAR FROM c_o.order_date) AS year
+    FROM customer_orders AS c_o
+    GROUP BY
+        EXTRACT(MONTH FROM c_o.order_date),
+        EXTRACT(YEAR FROM c_o.order_date)
+),
+monthly_average AS (
+    SELECT AVG(cr.revenue) AS ar
+    FROM company_revenue AS cr
+)
 
+SELECT
+    cr.month,
+    cr.year,
+    cr.revenue
+FROM company_revenue AS cr
+CROSS JOIN monthly_average AS ma
+WHERE cr.revenue > ma.ar;
 
+with total_customer_spendings as (select c_o.customer_id, sum(c_o.order_price) as total_spendings from customer_orders as c_o group by c_o.customer_id),
+avg_customer_spendings as (select avg(tcs.total_spendings) as avg_cs from total_customer_spendings as tcs)
+select c.customer_id, c.first_name, c.last_name, acs.avg_cs, tcs.total_spendings  from customers as c join customer_orders as c_o on c.customer_id = c_o.customer_id cross join avg_customer_spendings as acs 
+join total_customer_spendings as tcs on tcs.customer_id = c_o.customer_id where tcs.total_spendings > acs.avg_cs group by c.customer_id, c.first_name, c.last_name, acs.avg_cs, tcs.total_spendings
 
+select sum(c_o.order_price), extract(month from c_o.order_date) as month, extract(year from c_o.order_date) as year from customer_orders as c_o group by extract(month from c_o.order_date), extract(year from c_o.order_date)
