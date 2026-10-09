@@ -241,3 +241,11 @@ select c.customer_id, c.first_name, c.last_name, acs.avg_cs, tcs.total_spendings
 join total_customer_spendings as tcs on tcs.customer_id = c_o.customer_id where tcs.total_spendings > acs.avg_cs group by c.customer_id, c.first_name, c.last_name, acs.avg_cs, tcs.total_spendings
 
 select sum(c_o.order_price), extract(month from c_o.order_date) as month, extract(year from c_o.order_date) as year from customer_orders as c_o group by extract(month from c_o.order_date), extract(year from c_o.order_date)
+
+select c_o.order_id, c_o.order_price, dense_rank() over(order by c_o.order_price desc) from customer_orders as c_o
+
+select c_o.order_id, c_o.order_price, avg(c_o.order_price) over(partition by c_o.customer_id ) from customer_orders as c_o
+
+select c_o.order_id, c_o.order_price*100/sum(c_o.order_price)  over() as percentage from customer_orders as c_o group by c_o.order_id order by c_o.order_price desc
+
+select c_o.order_id, c_o.order_price - lag(c_o.order_price) over() from customer_orders as c_o
