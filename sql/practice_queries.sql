@@ -248,4 +248,18 @@ select c_o.order_id, c_o.order_price, avg(c_o.order_price) over(partition by c_o
 
 select c_o.order_id, c_o.order_price*100/sum(c_o.order_price)  over() as percentage from customer_orders as c_o group by c_o.order_id order by c_o.order_price desc
 
-select c_o.order_id, c_o.order_price - lag(c_o.order_price) over() from customer_orders as c_o
+select c_o.customer_id, c_o.order_id, c_o.order_price - lag(c_o.order_price) over() from customer_orders as c_o group by c_o.customer_id, c_o.order_id
+
+with top3 as (select p.product_id, p.product_name,p.product_price, c.category_name, rank() over(partition by c.category_id order by p.product_price desc) as ranking
+from product as p join categories as c on p.category_id = c.category_id)
+select * from top3 where ranking<4
+
+with orders_by_date as (select c_o.customer_id, c_o.order_id, c_o.order_price, dense_rank() over(partition by c_o.customer_id order by c_o.order_date) as chronologic from customer_orders as c_o)
+select * from orders_by_date where chronologic = 1
+
+
+select c_o.customer_id, c_o.order_price, c_o.order_date, c_o.order_price - lag(c_o.order_price,1,c_o.order_price) over(partition by c_o.customer_id order by c_o.order_date desc) as difference 
+from customer_orders as c_o 
+
+
+
