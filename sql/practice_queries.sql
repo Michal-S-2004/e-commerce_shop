@@ -262,4 +262,11 @@ select c_o.customer_id, c_o.order_price, c_o.order_date, c_o.order_price - lag(c
 from customer_orders as c_o 
 
 
+with price_change as (select c_o.customer_id, c_o.order_price, c_o.order_date, 
+coalesce(-1* c_o.order_price + lead(c_o.order_price) over(partition by c_o.customer_id  order by c_o.order_date desc),0) as difference 
+from customer_orders as c_o)
+select  *, case when difference >0 then 'TRUE' else 'FALSE' end as is_next_order_price_higher from price_change
+
+
+select c_o.order_date, c_o.order_id, sum(c_o.order_price) over(order by c_o.order_date, c_o.order_id) from customer_orders as c_o
 
