@@ -292,7 +292,7 @@ FROM daily_revenue
 select cat.category_name from categories as cat join product as p on cat.category_id = p.category_id where p.product_price >500 group by cat.category_name having avg(p.product_price)>1500
 
 with revenue_per_day as(select  c_o.order_date, sum(c_o.order_price) as rpd from customer_orders as c_o group by c_o.order_date)
-
+select *, 100*rpd/ sum(rpd) over(order by order_date) as percentage from revenue_per_day
 
 select *, avg(rpd) over(order by order_date rows between 2 preceding and current row) as MA from revenue_per_day; 
 select *, sum(rpd) over(order by order_date) from revenue_per_day;
