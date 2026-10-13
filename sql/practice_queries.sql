@@ -270,3 +270,35 @@ select  *, case when difference >0 then 'TRUE' else 'FALSE' end as is_next_order
 
 select c_o.order_date, c_o.order_id, sum(c_o.order_price) over(order by c_o.order_date, c_o.order_id) from customer_orders as c_o
 
+select c_o.customer_id, c_o.order_date, c_o.order_id, sum(c_o.order_price) over(partition by c_o.customer_id order by c_o.order_date, c_o.order_id) from customer_orders as c_o
+
+WITH daily_revenue AS (
+    SELECT 
+        c_o.order_date, 
+        SUM(c_o.order_price) AS daily_sum
+    FROM customer_orders AS c_o
+    GROUP BY c_o.order_date
+)
+-- KROK 2: Dopiero na czystych danych dziennych dołączamy średnią kroczącą
+SELECT 
+    order_date,
+    daily_sum,
+    AVG(daily_sum) OVER(
+        ORDER BY order_date ASC
+        ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
+    ) AS moving_avg_7d
+FROM daily_revenue
+
+select cat.category_name from categories as cat join product as p on cat.category_id = p.category_id where p.product_price >500 group by cat.category_name having avg(p.product_price)>1500
+
+with revenue_per_day as(select  c_o.order_date, sum(c_o.order_price) as rpd from customer_orders as c_o group by c_o.order_date)
+
+
+select *, avg(rpd) over(order by order_date rows between 2 preceding and current row) as MA from revenue_per_day; 
+select *, sum(rpd) over(order by order_date) from revenue_per_day;
+
+
+
+
+
+
