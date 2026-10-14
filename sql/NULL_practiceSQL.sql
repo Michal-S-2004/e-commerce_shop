@@ -17,3 +17,9 @@ SELECT
     product_id,
     unit_price / NULLIF(quantity, 0) AS price_per_unit
 FROM order_items;
+
+SELECT
+    order_id,
+    product_id,
+    unit_price / NULLIF(quantity, 0) AS price_per_unit
+FROM order_items;
