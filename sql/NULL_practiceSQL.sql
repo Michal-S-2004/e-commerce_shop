@@ -19,7 +19,11 @@ SELECT
 FROM order_items;
 
 SELECT
-    order_id,
     product_id,
-    unit_price / NULLIF(quantity, 0) AS price_per_unit
-FROM order_items;
+    product_name,
+    CASE
+        WHEN price IS NULL THEN 'Brak ceny'
+        WHEN price = 0 THEN 'Cena zerowa'
+        ELSE 'Cena dodatnia'
+    END AS price_status
+FROM product;
