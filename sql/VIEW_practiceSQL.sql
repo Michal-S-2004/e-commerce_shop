@@ -23,3 +23,10 @@ from customer_orders AS c_o
 join order_items AS o_i ON c_o.order_id = o_i.order_id 
 join product AS p ON p.product_id = o_i.product_id;
 
+
+explain analyze select * from products_and_categories;
+explain analyze select * from mv_products_and_categories;
+
+explain analyze select * from vw_order_item_details;
+explain analyze select * from mv_order_item_details
+
