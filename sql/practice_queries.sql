@@ -1,9 +1,9 @@
--- Pobranie wszystkich kolumn / wybranej listy kolumn
+
 select * from customers;
 
 select first_name, last_name from customers;
 
--- Filtrowanie i sortowanie
+
 select product_name 
 from product 
 where product_price > 3000;
@@ -26,7 +26,7 @@ from customers
 where created_at > '2026-01-01' 
 order by last_name;
 
--- Dopasowanie wzorców (LIKE) oraz klauzula IN / OR
+
 select last_name, first_name 
 from customers 
 where first_name like 'A%';
