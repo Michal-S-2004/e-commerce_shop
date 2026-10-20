@@ -595,3 +595,27 @@ select *, avg(rpd) over(order by order_date rows between 2 preceding and current
        sum(rpd) over(order by order_date) as cumulative_sum
 from revenue_per_day;
 
+WITH RankedOrders AS (
+    SELECT 
+        order_id,
+        customer_id,
+        employee_id,
+        shipping_address,
+        order_price,
+        order_date,
+        ROW_NUMBER() OVER (
+            PARTITION BY customer_id 
+            ORDER BY order_date ASC
+        ) AS rn
+    FROM nazwa_tabeli
+)
+SELECT 
+    order_id,
+    customer_id,
+    employee_id,
+    shipping_address,
+    order_price,
+    order_date
+FROM RankedOrders
+WHERE rn = 2;
+
