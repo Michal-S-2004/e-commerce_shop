@@ -619,3 +619,21 @@ SELECT
 FROM RankedOrders
 WHERE rn = 2;
 
+WITH RankedOrders AS (
+    SELECT 
+        customer_id,
+        order_id,
+        order_price,
+        ROW_NUMBER() OVER (
+            PARTITION BY customer_id 
+            ORDER BY order_price DESC
+        ) AS rn
+    FROM nazwa_tabeli
+)
+SELECT 
+    customer_id,
+    MAX(CASE WHEN rn = 3 THEN order_id END) AS third_most_expensive_order_id,
+    MAX(CASE WHEN rn = 3 THEN order_price END) AS third_order_price
+FROM RankedOrders
+GROUP BY customer_id;
+
